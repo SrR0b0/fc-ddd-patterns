@@ -7,6 +7,7 @@ import {
   BelongsTo,
   HasMany,
 } from "sequelize-typescript";
+import { OrderStatus } from "../../../../domain/checkout/entity/order";
 import CustomerModel from "../../../customer/repository/sequelize/customer.model";
 import OrderItemModel from "./order-item.model";
 
@@ -31,4 +32,7 @@ export default class OrderModel extends Model {
 
   @Column({ allowNull: false })
   declare total: number;
+
+  @Column({ allowNull: false, type: 'tinyint' })
+  declare status: OrderStatus;
 }

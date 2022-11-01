@@ -1,5 +1,5 @@
 import { Sequelize } from "sequelize-typescript";
-import Order from "../../../../domain/checkout/entity/order";
+import Order, { OrderStatus } from "../../../../domain/checkout/entity/order";
 import OrderItem from "../../../../domain/checkout/entity/order_item";
 import Customer from "../../../../domain/customer/entity/customer";
 import Address from "../../../../domain/customer/value-object/address";
@@ -69,6 +69,7 @@ describe("Order repository test", () => {
       id: "123",
       customer_id: "123",
       total: order.total(),
+      status: OrderStatus.PENDING_PAYMENT,
       items: [
         {
           id: ordemItem.id,
@@ -81,4 +82,107 @@ describe("Order repository test", () => {
       ],
     });
   });
+
+  it("should update an order", async () => {
+    const customerRepository = new CustomerRepository();
+    const customer = new Customer("123", "Customer 1");
+    const address = new Address("Street 1", 1, "Zipcode 1", "City 1");
+    customer.changeAddress(address);
+    await customerRepository.create(customer);
+
+    const productRepository = new ProductRepository();
+    const product = new Product("123", "Product 1", 10);
+    await productRepository.create(product);
+
+    const orderItem = new OrderItem(
+      "1",
+      product.name,
+      product.price,
+      product.id,
+      2
+    );
+
+    const order = new Order("123", "123", [orderItem]);
+    const orderRepository = new OrderRepository();
+    await orderRepository.create(order);
+  
+    order.confirmPayment();
+  
+    await orderRepository.update(order);
+
+    const foundOrder = await orderRepository.find(order.id);
+
+    expect(foundOrder).toEqual(order);
+  })
+
+  it("should find a created order", async () => {
+    const customerRepository = new CustomerRepository();
+    const customer = new Customer("123", "Customer 1");
+    const address = new Address("Street 1", 1, "Zipcode 1", "City 1");
+    customer.changeAddress(address);
+    await customerRepository.create(customer);
+
+    const productRepository = new ProductRepository();
+    const product = new Product("123", "Product 1", 10);
+    await productRepository.create(product);
+
+    const orderItem = new OrderItem(
+      "1",
+      product.name,
+      product.price,
+      product.id,
+      2
+    );
+
+    const order = new Order("123", "123", [orderItem]);
+    const orderRepository = new OrderRepository();
+    await orderRepository.create(order);
+
+    const foundOrder = await orderRepository.find("123");
+    
+    expect(foundOrder).toBeInstanceOf(Order);
+    expect(foundOrder).toEqual(order);
+  });
+
+  it("should find all created orders", async () => {
+    const customerRepository = new CustomerRepository();
+    const customer = new Customer("123", "Customer 1");
+    const address = new Address("Street 1", 1, "Zipcode 1", "City 1");
+    customer.changeAddress(address);
+    await customerRepository.create(customer);
+
+    const productRepository = new ProductRepository();
+    const product = new Product("123", "Product 1", 10);
+    await productRepository.create(product);
+
+    const orderItem = new OrderItem(
+      "1",
+      product.name,
+      product.price,
+      product.id,
+      2
+    );
+
+    const order = new Order("123", "123", [orderItem]);
+    const orderRepository = new OrderRepository();
+    await orderRepository.create(order);
+
+    const orderItem2 = new OrderItem(
+      "2",
+      product.name,
+      product.price,
+      product.id,
+      1
+    );
+
+    const order2 = new Order("124", "123", [orderItem2]);
+    await orderRepository.create(order2);
+
+    const foundOrders = await orderRepository.findAll();
+    
+    expect(foundOrders).toHaveLength(2);
+    expect(foundOrders).toContainEqual(order);
+    expect(foundOrders).toContainEqual(order2);
+  });
+
 });

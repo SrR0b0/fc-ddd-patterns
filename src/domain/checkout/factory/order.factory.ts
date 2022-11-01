@@ -1,9 +1,10 @@
-import Order from "../entity/order";
+import Order, { OrderStatus } from "../entity/order";
 import OrderItem from "../entity/order_item";
 
 interface OrderFactoryProps {
   id: string;
   customerId: string;
+  status?: OrderStatus;
   items: {
     id: string;
     name: string;
@@ -25,7 +26,7 @@ export default class OrderFactory {
       );
     });
     
-    return new Order(props.id, props.customerId, items);
+    return new Order(props.id, props.customerId, items, props.status);
 
   }
 }
