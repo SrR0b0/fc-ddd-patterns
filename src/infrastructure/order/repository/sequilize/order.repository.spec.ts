@@ -23,7 +23,7 @@ describe("Order repository test", () => {
       sync: { force: true },
     });
 
-    await sequelize.addModels([
+    sequelize.addModels([
       CustomerModel,
       OrderModel,
       OrderItemModel,
@@ -57,7 +57,7 @@ describe("Order repository test", () => {
 
     const order = new Order("123", "123", [ordemItem]);
 
-    const orderRepository = new OrderRepository();
+    const orderRepository = new OrderRepository(sequelize);
     await orderRepository.create(order);
 
     const orderModel = await OrderModel.findOne({
@@ -83,7 +83,7 @@ describe("Order repository test", () => {
     });
   });
 
-  it("should update an order", async () => {
+  it("should update the order status", async () => {
     const customerRepository = new CustomerRepository();
     const customer = new Customer("123", "Customer 1");
     const address = new Address("Street 1", 1, "Zipcode 1", "City 1");
@@ -103,7 +103,7 @@ describe("Order repository test", () => {
     );
 
     const order = new Order("123", "123", [orderItem]);
-    const orderRepository = new OrderRepository();
+    const orderRepository = new OrderRepository(sequelize);
     await orderRepository.create(order);
   
     order.confirmPayment();
@@ -114,6 +114,47 @@ describe("Order repository test", () => {
 
     expect(foundOrder).toEqual(order);
   })
+
+  it("should add new items to the order", async () => {
+    const customerRepository = new CustomerRepository();
+    const customer = new Customer("123", "Customer 1");
+    const address = new Address("Street 1", 1, "Zipcode 1", "City 1");
+    customer.changeAddress(address);
+    await customerRepository.create(customer);
+
+    const productRepository = new ProductRepository();
+    const product = new Product("123", "Product 1", 10);
+    await productRepository.create(product);
+
+    const orderItem = new OrderItem(
+      "1",
+      product.name,
+      product.price,
+      product.id,
+      2
+    );
+
+    const order = new Order("123", "123", [orderItem]);
+    const orderRepository = new OrderRepository(sequelize);
+    await orderRepository.create(order);
+
+    const product2 = new Product("124", "Product 2", 20);
+    await productRepository.create(product2);
+    const orderItem2 = new OrderItem(
+      "2",
+      product2.name,
+      product2.price,
+      product2.id,
+      1
+    );
+    order.addItem(orderItem2);
+
+    await orderRepository.update(order);
+
+    const foundOrder = await orderRepository.find(order.id);
+
+    expect(foundOrder).toEqual(order);
+  });
 
   it("should find a created order", async () => {
     const customerRepository = new CustomerRepository();
@@ -135,7 +176,7 @@ describe("Order repository test", () => {
     );
 
     const order = new Order("123", "123", [orderItem]);
-    const orderRepository = new OrderRepository();
+    const orderRepository = new OrderRepository(sequelize);
     await orderRepository.create(order);
 
     const foundOrder = await orderRepository.find("123");
@@ -164,7 +205,7 @@ describe("Order repository test", () => {
     );
 
     const order = new Order("123", "123", [orderItem]);
-    const orderRepository = new OrderRepository();
+    const orderRepository = new OrderRepository(sequelize);
     await orderRepository.create(order);
 
     const orderItem2 = new OrderItem(

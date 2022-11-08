@@ -233,4 +233,16 @@ describe("Order unit tests", () => {
         .toThrowError("Cannot cancel order after it has been paid");
     });
   });
+
+  it("should add new items", () => {
+    const item = new OrderItem("i1", "Item 1", 100, "p1", 1);
+    const order = new Order("o1", "c1", [item]);
+    
+    const item2 = new OrderItem("i2", "Item 2", 100, "p2", 1);
+    order.addItem(item2);
+
+    expect(order.items).toHaveLength(2);
+    expect(order.items).toContain(item);
+    expect(order.items).toContain(item2);
+  });
 });

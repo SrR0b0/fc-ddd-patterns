@@ -121,4 +121,30 @@ export default class Order {
   cancelled(): boolean {
     return this._status === OrderStatus.CANCELLED;
   }
+
+  addItem(item: OrderItem): void {
+    const hasItem = !!this._items.find(({ id }) => id === item.id);
+    if (hasItem) {
+      throw new Error(`Order already contains an item with id ${item.id}`);
+    }
+    this._items.push(item);
+    this._total = this.total();
+  }
+
+  toJSON(): Record<string, any> {
+    return {
+      id: this.id,
+      customer_id: this.customerId,
+      total: this.total(),
+      status: this.status,
+      items: this.items.map((item) => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        product_id: item.productId,
+        quantity: item.quantity,
+        order_id: this.id,
+      })),
+    };
+  }
 }
